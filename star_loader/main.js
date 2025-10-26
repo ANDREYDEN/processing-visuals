@@ -17,21 +17,14 @@ let midPointRadius = STAR_MID_POINT_RADIUS;
 function setup() {
   createCanvas(window.innerWidth, window.innerHeight);
   fill(255, 255, 0);
-  stroke(255);
+  stroke(255, 255, 0);
 }
 
 function draw() {
   background(56);
 
-  beginShape();
-  for (let i = 0; i < VERTEX_COUNT; i++) {
-    const curVertex = getVertex(i);
-    const nextMidPoint = getPointOnCircle(midPointRadius, getAngle(i + 0.5));
-
-    vertex(curVertex.x, curVertex.y);
-    vertex(nextMidPoint.x, nextMidPoint.y);
-  }
-  endShape();
+  drawShape();
+  drawSunBeams();
 
   startAngle += ROTATION_SPEED;
   performMorph();
@@ -42,6 +35,34 @@ function keyPressed() {
     morphInProgress = true;
     morphDirection *= -1;
   }
+}
+
+function drawShape() {
+  beginShape();
+  for (let i = 0; i < VERTEX_COUNT; i++) {
+    const curVertex = getVertex(i);
+    const nextMidPoint = getPointOnCircle(midPointRadius, getAngle(i + 0.5));
+
+    vertex(curVertex.x, curVertex.y);
+    vertex(nextMidPoint.x, nextMidPoint.y);
+  }
+  endShape();
+}
+
+function drawSunBeams() {
+  if (midPointRadius < CIRCLE_RADIUS) return;
+
+  strokeWeight(4);
+  for (let i = 0; i < VERTEX_COUNT * 2; i++) {
+    const angle = getAngle(i / 2);
+    const radiusStart = CIRCLE_RADIUS * 1.1;
+    const radiusEnd = CIRCLE_RADIUS * 1.5;
+    const innerPoint = getPointOnCircle(radiusStart, angle);
+    const outerPoint = getPointOnCircle(radiusEnd, angle);
+
+    line(innerPoint.x, innerPoint.y, outerPoint.x, outerPoint.y);
+  }
+  strokeWeight(1);
 }
 
 function performMorph() {
