@@ -1,14 +1,18 @@
 const CENTER_X = window.innerWidth / 2;
 const CENTER_Y = window.innerHeight / 2;
-const RADIUS = 200;
+const CIRCLE_RADIUS = 200;
+const STAR_MID_POINT_RADIUS = CIRCLE_RADIUS * 0.4;
 
 const VERTEX_COUNT = 5;
 const VERTEX_ANGLE = (2 * Math.PI) / VERTEX_COUNT;
 
 let startAngle = 0;
-const ROTATION_SPEED = 0.02;
+const ROTATION_SPEED = 0.01;
 
-const PART_RATIO = 2.61;
+const MORPH_SPEED = 1;
+let morphInProgress = false;
+let morphDirection = -1;
+let midPointRadius = STAR_MID_POINT_RADIUS;
 
 function setup() {
   createCanvas(window.innerWidth, window.innerHeight);
@@ -19,28 +23,50 @@ function setup() {
 function draw() {
   background(56);
 
+  beginShape();
   for (let i = 0; i < VERTEX_COUNT; i++) {
     const curVertex = getVertex(i);
-    const nextVertex = getVertex(i + 2);
-    const prevVertex = getVertex(i - 2);
+    const nextMidPoint = getPointOnCircle(midPointRadius, getAngle(i + 0.5));
 
-    const nextDelta = p5.Vector.sub(nextVertex, curVertex).div(PART_RATIO);
-    const end1 = p5.Vector.add(curVertex, nextDelta);
-
-    const prevDelta = p5.Vector.sub(prevVertex, curVertex).div(PART_RATIO);
-    const end2 = p5.Vector.add(curVertex, prevDelta);
-
-    line(curVertex.x, curVertex.y, end1.x, end1.y);
-    line(curVertex.x, curVertex.y, end2.x, end2.y);
+    vertex(curVertex.x, curVertex.y);
+    vertex(nextMidPoint.x, nextMidPoint.y);
   }
+  endShape();
 
   startAngle += ROTATION_SPEED;
+  performMorph();
+}
+
+function keyPressed() {
+  if (keyCode === ENTER) {
+    morphInProgress = true;
+    morphDirection *= -1;
+  }
+}
+
+function performMorph() {
+  if (!morphInProgress) return;
+
+  midPointRadius += morphDirection * MORPH_SPEED;
+  if (
+    midPointRadius >= CIRCLE_RADIUS ||
+    midPointRadius <= STAR_MID_POINT_RADIUS
+  ) {
+    morphInProgress = false;
+  }
 }
 
 function getVertex(i) {
-  const angle = startAngle + i * VERTEX_ANGLE;
-  const x = CENTER_X + RADIUS * Math.cos(angle);
-  const y = CENTER_Y + RADIUS * Math.sin(angle);
+  const angle = getAngle(i);
+  return getPointOnCircle(CIRCLE_RADIUS, angle);
+}
 
+function getPointOnCircle(radius, angle) {
+  const x = CENTER_X + radius * Math.cos(angle);
+  const y = CENTER_Y + radius * Math.sin(angle);
   return createVector(x, y);
+}
+
+function getAngle(i) {
+  return startAngle + i * VERTEX_ANGLE;
 }
